@@ -30,7 +30,8 @@ pacotes <- c(
   "geobr",          # Shapefiles do Brasil (IBGE)
 
   # --- Download / APIs de dados públicos ---
-  "microdatasus",   # DataSUS (SIM, SINASC, SIH)
+  "healthbR",       # DataSUS via CRAN: sim_data(), sinasc_data(), sih_data()
+  "microdatasus",   # DataSUS alternativo (GitHub, rfsaldanha) — mantido como fallback
   "basedosdados",   # Base dos Dados (BigQuery — RAIS, PIB, etc.)
   "ipeadatar",      # IPEA Data (séries macroeconômicas)
   "httr",           # Requisições HTTP
@@ -72,17 +73,23 @@ pacotes <- c(
   "furrr"           # purrr com paralelismo (via future)
 )
 
-# Instala pacotes ausentes (sem usar renv::restore())
+# Instala pacotes ausentes do CRAN (sem usar renv::restore())
 pacotes_faltando <- pacotes[!sapply(pacotes, requireNamespace, quietly = TRUE)]
 if (length(pacotes_faltando) > 0) {
   message("Instalando pacotes faltantes: ", paste(pacotes_faltando, collapse = ", "))
   install.packages(pacotes_faltando, dependencies = TRUE)
 }
 
-# microdatasus está no GitHub
+# microdatasus está no GitHub (fallback — healthbR é preferido)
 if (!requireNamespace("microdatasus", quietly = TRUE)) {
   if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
   remotes::install_github("rfsaldanha/microdatasus")
+}
+
+# Verificar versão do healthbR (CRAN)
+if (requireNamespace("healthbR", quietly = TRUE)) {
+  message("healthbR v", as.character(packageVersion("healthbR")),
+          " carregado — sim_data(), sinasc_data(), sih_data() disponíveis")
 }
 
 # didimputation está no GitHub

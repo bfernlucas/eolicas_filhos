@@ -20,6 +20,7 @@ Imports:
     glue,
     sf,
     geobr,
+    healthbR,
     microdatasus,
     basedosdados,
     ipeadatar,
