@@ -1,0 +1,357 @@
+---
+title: "Eólicas e Filhos: Impactos de Parques Eólicos sobre Resultados Reprodutivos e Familiares no Nordeste Brasileiro"
+subtitle: "Estudo de Diferenças em Diferenças com Adoção Escalonada"
+author:
+  - name: "Autor Principal"
+    affiliation: "Instituição"
+    email: "autor@exemplo.br"
+date: today
+date-format: "MMMM YYYY"
+lang: pt-BR
+
+format:
+  pdf:
+    documentclass: article
+    classoption: [12pt, a4paper]
+    geometry:
+      - top=2.5cm
+      - bottom=2.5cm
+      - left=3cm
+      - right=2.5cm
+    fontfamily: libertinus
+    fontfamilyoptions: [osf, p]
+    mainfont: "Linux Libertine O"
+    monofont: "Fira Code"
+    indent: true
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    colorlinks: true
+    link-citations: true
+    bibliography: references.bib
+    biblio-style: "authoryear"
+    cite-method: biblatex
+    include-in-header:
+      text: |
+        \usepackage{booktabs}
+        \usepackage{longtable}
+        \usepackage{dcolumn}
+        \usepackage{rotating}
+        \usepackage{siunitx}
+        \usepackage{threeparttable}
+        \usepackage{pdflscape}
+        \usepackage{setspace}
+        \onehalfspacing
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    theme: flatly
+    embed-resources: true
+    code-fold: true
+    code-summary: "Mostrar código"
+
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: true
+  freeze: auto
+
+knitr:
+  opts_chunk:
+    fig.align: "center"
+    out.width: "90%"
+    dpi: 300
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+source(here::here("R", "00_setup.R"))
+source(here::here("R", "functions.R"))
+
+# Carrega painel final
+painel <- carregar("painel_final")
+```
+
+# Introdução
+
+A expansão das energias renováveis no Nordeste brasileiro tem sido notável nas últimas duas décadas.
+Entre 2000 e 2022, a capacidade instalada eólica na região saltou de praticamente zero para mais de 20 GW,
+tornando o Brasil um dos maiores produtores de energia eólica do mundo [@aneel2023].
+Esse crescimento, porém, ocorreu de forma heterogênea — concentrado em municípios específicos, muitos deles
+pequenos e economicamente vulneráveis no semiárido.
+
+Parques eólicos geram efeitos locais significativos: emprego na construção e operação, royalties municipais
+(CFEM), melhoria de infraestrutura e movimentos populacionais. Em economias com mercados de trabalho
+relativamente inelásticos, esses choques de renda podem alterar comportamentos reprodutivos e familiares
+[@black2005; @lovenheim2011].
+
+Este trabalho estima o efeito causal da instalação de parques eólicos sobre:
+
+1. **Gravidez na adolescência** — taxa de nascidos vivos de mães com 10 a 19 anos por 1.000 mulheres;
+2. **Desfechos abortivos** (CID O00–O08) — internações hospitalares e óbitos relacionados;
+3. **Mortalidade neonatal** — óbitos de recém-nascidos com 0–27 dias por 1.000 nascidos vivos;
+4. **Paternidade ausente** — proporção de nascimentos sem pai registrado;
+5. **Vínculos formais** — número de empregos formais, com ênfase no setor de geração de energia.
+
+Utilizamos dados administrativos para todos os 1.794 municípios do Nordeste entre 2000 e 2022 e
+estimamos um modelo de diferenças em diferenças com adoção escalonada (*staggered DiD*),
+seguindo @callaway2021, @sun2021 e @borusyak2024.
+
+# Contextualização
+
+## Expansão Eólica no Nordeste
+
+```{r}
+#| label: fig-eolicas-mapa
+#| fig-cap: "Municípios com parques eólicos no Nordeste (2000–2022). Cores indicam o coorte de primeiro tratamento."
+
+# Figura gerada por 09_descritivas.R e salva em output/figures/
+knitr::include_graphics(here::here("output", "figures", "09_mapa_cohorts.png"))
+```
+
+## Delimitação do Semiárido
+
+```{r}
+#| label: fig-semiarido
+#| fig-cap: "Evolução da delimitação do semiárido (SUDENE/CONDEL, 2005–2022)."
+
+knitr::include_graphics(here::here("output", "maps", "02_evolucao_semiarido.png"))
+```
+
+# Dados e Variáveis
+
+## Fontes de Dados
+
+| Fonte | Variáveis | Período |
+|-------|-----------|---------|
+| ANEEL SIGA | Parques eólicos, data de operação, capacidade | 2000–2022 |
+| SINASC/DataSUS | Nascidos vivos, idade da mãe, registro de pai | 2000–2022 |
+| SIM/DataSUS | Óbitos por causa (CID-10) | 2000–2022 |
+| SIH/DataSUS | Internações hospitalares (AIH) | 2000–2022 |
+| RAIS/MTE | Vínculos de emprego formal por CNAE | 2000–2022 |
+| IBGE/SIDRA | População por sexo e faixa etária | 2000–2022 |
+| IPEADATA | PIB municipal, IDH-M, Gini | 2000–2019 |
+| SUDENE | Delimitação do semiárido (6 resoluções) | 2005–2022 |
+| geobr | Malha municipal, coordenadas de centróides | 2020 |
+
+: Fontes de dados utilizadas {#tbl-fontes}
+
+## Tratamento: Primeiro Parque Eólico
+
+O tratamento é definido como o primeiro ano em que um município possui ao menos um parque eólico
+em operação, conforme o Sistema de Informações de Geração da ANEEL (SIGA).
+A @fig-cohorts mostra a distribuição dos coortes de tratamento.
+
+```{r}
+#| label: fig-cohorts
+#| fig-cap: "Distribuição dos coortes de tratamento (ano do primeiro parque eólico)."
+
+knitr::include_graphics(here::here("output", "figures", "09_cohorts_distribuicao.png"))
+```
+
+## Variáveis de Resultado
+
+```{r}
+#| label: tbl-descritivas
+#| tbl-cap: "Estatísticas descritivas — pré-tratamento (antes do primeiro parque eólico)"
+
+carregar("tabela_descritivas_balance") |>
+  kableExtra::kable(
+    format = "latex",
+    booktabs = TRUE,
+    digits = 3,
+    linesep = ""
+  ) |>
+  kableExtra::kable_styling(font_size = 9) |>
+  kableExtra::add_header_above(
+    c(" " = 1, "Tratados" = 2, "Controles" = 2, " " = 1)
+  )
+```
+
+# Estratégia de Identificação
+
+## Diferenças em Diferenças com Adoção Escalonada
+
+Seja $Y_{it}$ o resultado do município $i$ no ano $t$, e $G_i$ o coorte de primeiro tratamento
+(com $G_i = 0$ para municípios nunca tratados). O estimador de @callaway2021 calcula efeitos médios
+do tratamento para cada par $(g, t)$:
+
+$$
+ATT(g, t) = \mathbb{E}\left[Y_{it}(g) - Y_{it}(0) \mid G_i = g\right]
+$$
+
+onde $Y_{it}(0)$ é o resultado potencial sem tratamento, identificado pelo parallelismo de tendências
+dos nunca-tratados:
+
+$$
+\mathbb{E}\left[Y_{it}(0) - Y_{i,g-1}(0) \mid G_i = g\right] =
+\mathbb{E}\left[Y_{it}(0) - Y_{i,g-1}(0) \mid G_i = 0\right], \quad t \geq g
+$$
+
+O efeito médio simples (*simple aggregate*) é:
+
+$$
+\overline{ATT} = \sum_{g} \sum_{t \geq g} w_{gt} \cdot ATT(g,t)
+$$
+
+onde os pesos $w_{gt}$ são proporcionais ao número de municípios no coorte $g$.
+
+## Covariadas
+
+Controlamos por:
+
+- **$d\_semiarido_{it}$**: indicador de semiárido com variação temporal (6 resoluções SUDENE);
+- **$d\_covid_t$**: indicador para 2020–2021 (efeitos da pandemia);
+- Efeitos fixos de município ($\alpha_i$) e de ano ($\lambda_t$).
+
+## Parallelismo de Tendências — Pré-testes
+
+```{r}
+#| label: fig-pretrend
+#| fig-cap: "Estudo de evento — pré-tendências para os desfechos principais (CS2021). Estimativas para períodos pré-tratamento não significativamente diferentes de zero são consistentes com a hipótese de parallelismo."
+
+knitr::include_graphics(here::here("output", "figures", "10_event_study_principal.png"))
+```
+
+# Resultados
+
+## Efeitos sobre Gravidez na Adolescência
+
+```{r}
+#| label: fig-es-adol
+#| fig-cap: "Estudo de evento: taxa de gravidez na adolescência (por 1.000 mulheres 10–19 anos). CS2021, controle = nunca-tratados."
+
+knitr::include_graphics(here::here("output", "figures", "10_event_study_adol.png"))
+```
+
+## Efeitos sobre Desfechos Abortivos
+
+```{r}
+#| label: fig-es-aborto
+#| fig-cap: "Estudo de evento: internações por desfechos abortivos (CID O00–O08) por 100.000 mulheres."
+
+knitr::include_graphics(here::here("output", "figures", "10_event_study_aborto.png"))
+```
+
+## Tabela de Resultados Principais
+
+```{r}
+#| label: tbl-resultados
+#| tbl-cap: "Efeitos estimados sobre desfechos reprodutivos e familiares. CS2021 = Callaway & Sant'Anna (2021); SA2021 = Sun & Abraham (2021); TWFE = Two-Way Fixed Effects. Erros padrão clusterizados por município entre parênteses."
+
+carregar("tabela_comparacao_estimadores") |>
+  kableExtra::kable(
+    format = "latex",
+    booktabs = TRUE,
+    digits = 3,
+    linesep = "",
+    col.names = c("Desfecho", "ATT", "EP", "ATT", "EP", "ATT", "EP",
+                  "p (CS)", "p (TWFE)")
+  ) |>
+  kableExtra::add_header_above(
+    c(" " = 1, "CS2021" = 2, "SA2021" = 2, "TWFE" = 2, " " = 2)
+  ) |>
+  kableExtra::kable_styling(font_size = 9)
+```
+
+## Emprego Formal
+
+```{r}
+#| label: fig-es-rais
+#| fig-cap: "Estudo de evento: log(vínculos formais totais) e vínculos no setor de energia."
+
+knitr::include_graphics(here::here("output", "figures", "10_event_study_rais.png"))
+```
+
+# Análises de Robustez
+
+## Decomposição de Bacon
+
+```{r}
+#| label: fig-bacon
+#| fig-cap: "Decomposição de Goodman-Bacon (2021). Cada ponto representa uma comparação 2x2. O peso relativo indica a contribuição de cada comparação para o TWFE pooled."
+
+knitr::include_graphics(here::here("output", "figures", "11_bacon_decomp.png"))
+```
+
+## Sensibilidade à Violação de Parallelismo (HonestDiD)
+
+```{r}
+#| label: fig-honestdid
+#| fig-cap: "Análise de sensibilidade HonestDiD (Rambachan & Roth, 2023). Intervalo de confiança robusto (FLCI) para diferentes graus de desvio do parallelismo ($\\bar{M}$)."
+
+knitr::include_graphics(here::here("output", "figures", "11_honestdid.png"))
+```
+
+## Placebo e Robustez Adicional
+
+```{r}
+#| label: fig-robustez
+#| fig-cap: "Painel de robustez: (A) placebo por permutação (200 iterações); (B) excluindo adotantes precoces (<2008); (C) excluindo 2020–2021; (D) antecipação=1."
+
+knitr::include_graphics(here::here("output", "figures", "11_robustez_consolidado.png"))
+```
+
+# Discussão
+
+Os resultados indicam que a instalação de parques eólicos [@aneel2023] está associada a
+[*inserir interpretação dos resultados após execução*].
+
+## Mecanismos Potenciais
+
+**Canal de renda**: Parques eólicos geram empregos diretos na fase de construção (2–3 anos) e empregos permanentes na operação. O choque de renda pode reduzir a gravidez adolescente ao aumentar o custo de oportunidade — consistente com a literatura sobre recursos naturais e comportamento reprodutivo [@black2005].
+
+**Canal de migração**: A chegada de trabalhadores de fora pode aumentar a proporção de uniões informais e, consequentemente, a paternidade ausente [@lovenheim2011].
+
+**Canal de infraestrutura**: Royalties da CFEM e ISS sobre os parques podem financiar serviços de saúde, incluindo planejamento familiar.
+
+## Limitações
+
+- Dados do Registro Civil sobre reconhecimento de paternidade têm cobertura parcial pré-2010;
+- Velocidade do vento não disponível em nível municipal para todo o período — limita IV;
+- A capacidade instalada como medida de intensidade assume proporcionalidade ao impacto econômico local;
+- Não é possível separar efeitos da construção (temporários) dos de operação (permanentes) sem informação sobre datas de conclusão de obras.
+
+# Conclusões
+
+[*A ser preenchido após análise final.*]
+
+# Referências {.unnumbered}
+
+::: {#refs}
+:::
+
+# Apêndice {.appendix}
+
+## A. Municípios Tratados por Coorte {#sec-apend-cohorts}
+
+```{r}
+#| label: tbl-cohorts
+#| tbl-cap: "Número de municípios por coorte de primeiro tratamento."
+
+painel |>
+  dplyr::filter(g_cs > 0) |>
+  dplyr::distinct(cod_mun, g_cs) |>
+  dplyr::count(g_cs, name = "n_municipios") |>
+  dplyr::rename(`Coorte (1º parque)` = g_cs, `Municípios` = n_municipios) |>
+  kableExtra::kable(format = "latex", booktabs = TRUE, linesep = "")
+```
+
+## B. Variáveis do Painel {#sec-apend-variaveis}
+
+Para dicionário completo de variáveis, ver `docs/codebook.md`.
+
+## C. Detalhes Computacionais {#sec-apend-comp}
+
+```{r}
+#| label: session-info
+#| echo: true
+
+sessionInfo()
+```
+
+Código e dados disponíveis em: `https://github.com/bfernlucas/eolicas_filhos`
