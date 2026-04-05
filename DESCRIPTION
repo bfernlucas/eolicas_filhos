@@ -1,0 +1,55 @@
+Package: eolicasfilhos
+Title: Eólicas e Filhos: Impactos de Parques Eólicos sobre Resultados
+    Reprodutivos e Familiares no Nordeste Brasileiro
+Version: 0.1.0
+Authors@R:
+    person("Autor", "Principal", email = "autor@exemplo.br", role = c("aut", "cre"))
+Description: Estudo de diferenças em diferenças com adoção escalonada
+    (staggered DiD) analisando o efeito de parques eólicos sobre gravidez
+    na adolescência, desfechos abortivos (CID O00-O08), mortalidade neonatal,
+    paternidade ausente e emprego formal nos municípios do Nordeste do Brasil.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Imports:
+    tidyverse,
+    data.table,
+    janitor,
+    lubridate,
+    glue,
+    sf,
+    geobr,
+    microdatasus,
+    basedosdados,
+    ipeadatar,
+    httr,
+    jsonlite,
+    readxl,
+    writexl,
+    fixest,
+    did,
+    didimputation,
+    HonestDiD,
+    bacondecomp,
+    lmtest,
+    sandwich,
+    modelsummary,
+    gt,
+    kableExtra,
+    ggplot2,
+    patchwork,
+    scales,
+    viridis,
+    RColorBrewer,
+    targets,
+    tarchetypes,
+    here,
+    fs,
+    progressr,
+    future,
+    furrr,
+    geosphere,
+    zoo,
+    sidrar,
+    ggdid

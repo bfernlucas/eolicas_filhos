@@ -1,0 +1,32 @@
+# ---- R ----
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj.user/
+renv/library/
+renv/local/
+renv/lock/
+
+# ---- Dados brutos grandes (baixar via scripts) ----
+data/raw/**
+!data/raw/**/.gitkeep
+data/processed/**
+!data/processed/.gitkeep
+data/final/**
+!data/final/.gitkeep
+
+# ---- Outputs intermediários ----
+output/**
+!output/**/.gitkeep
+
+# ---- renv cache ----
+renv/staging/
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+*.swp
+
+# ---- Credenciais / tokens ----
+.env
+secrets.R

@@ -1,0 +1,22 @@
+# Normaliza quebras de linha para LF no repositório
+* text=auto eol=lf
+
+# Arquivos binários — não normalizar
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.7z  binary
+*.gz  binary
+*.rds binary
+*.feather binary
+*.parquet binary
+*.xlsx binary
+*.xls binary
+*.dta binary
+*.dbf binary
+*.shp binary
+*.shx binary
+*.prj binary

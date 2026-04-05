@@ -1,0 +1,10 @@
+# Este diretório armazena os CSVs das resoluções CONDEL/SUDENE.
+# Ver docs/data_notes.md para instruções de download.
+# 
+# Arquivos esperados:
+#   semiarido_2005_municipios.csv
+#   resolucao_107_2017.csv
+#   resolucao_115_2017.csv
+#   resolucao_128_2018.csv
+#   resolucao_150_2019.csv
+#   resolucao_173_2022.csv
