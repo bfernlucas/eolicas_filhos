@@ -22,29 +22,31 @@ Este documento descreve os passos exatos para obter cada fonte de dados utilizad
   `data/raw/sudene/semiarido_2005_municipios.csv`
 - Colunas esperadas: `cod_ibge` (7 dígitos), `municipio`, `uf`
 
-### 2b. Resoluções CONDEL 2017–2022
-As resoluções são publicadas no DOU; os anexos com listas de municípios estão em:
+### 2b. Resoluções CONDEL que alteraram a delimitação
 
-| Resolução | Data | URL (portal SUDENE) |
-|---|---|---|
-| CONDEL nº 107/2017 | 27/07/2017 | `https://www.gov.br/sudene/resolucoes-condel-sudene/resolucao-condel-sudene-no-107-de-27-de-julho-de-2017` |
-| CONDEL nº 115/2017 | 23/11/2017 | `https://www.gov.br/sudene/resolucoes-condel-sudene/resolucao-condel-sudene-no-115-de-23-de-novembro-de-2017` |
-| CONDEL nº 128/2018 | 10/08/2018 | `https://www.gov.br/sudene/resolucoes-condel-sudene/resolucao-condel-sudene-no-128-de-10-de-agosto-de-2018` |
-| CONDEL nº 150/2019 | 13/12/2019 | `https://www.gov.br/sudene/resolucoes-condel-sudene/resolucao-condel-sudene-no-150-de-13-de-dezembro-de-2019` |
-| CONDEL nº 173/2021 | 15/12/2021 | `https://www.gov.br/sudene/resolucoes-condel-sudene/resolucao-condel-sudene-no-173-de-15-de-dezembro-de-2021` |
+| Resolução | Data | Municípios | Nota |
+|---|---|---|---|
+| CONDEL nº 107/2017 | 27/07/2017 | +54 (PI:36, CE:15, BA:3) | geobr snapshot 2017 inclui esta e a 115 |
+| CONDEL nº 115/2017 | 23/11/2017 | +73 | idem |
+| CONDEL nº 150/2021 | 13/12/2021 | +215, -50 (inclui MG e ES) | geobr snapshot 2021 |
 
-**Passos:**
-1. Acessar cada URL acima
-2. Baixar o PDF do Anexo (lista de municípios incluídos/excluídos)
-3. Extrair os códigos IBGE de 7 dígitos (ferramentas úteis: `tabulizer`, `pdftools`, ou extração manual)
-4. Salvar como CSV em `data/raw/sudene/resolucao_NNN_AAAA.csv` com colunas:
-   - `cod_ibge` (integer, 7 dígitos)
-   - `municipio` (character)
-   - `uf` (character, 2 letras)
-   - `resolucao` (character, ex: "107/2017")
-   - `ano_vigencia` (integer, ex: 2017)
+**Notas importantes:**
+- Res. 128/2018 e Res. 173/2023 **não** alteram a delimitação geográfica do semiárido.
+- Res. 150 é de **2021** (não 2019) e inclui pela primeira vez municípios de MG e ES.
+- O script `R/02_semiarido_sudene.R` usa `geobr::read_semiarid(year = 2005/2017/2021)`
+  diretamente — nenhuma lista manual de municípios é necessária.
 
-**Alternativa:** O pacote `geobr::read_semiarid()` retorna o polígono de 2017 (pós-resolução 115). Para uso no painel, é necessário reconstruir a lista histórica conforme acima.
+**Como o painel reconstrói a variação temporal:**
+
+```r
+# Municípios no snapshot 2005  → ano_entrada = 2005
+# Presentes em 2017 mas não 2005 → ano_entrada = 2017  (Res. 107 + 115)
+# Presentes em 2021 mas não 2017 → ano_entrada = 2021  (Res. 150)
+# Removidos pela Res. 150        → d_semiarido = 0 a partir de 2021
+geobr::read_semiarid(year = 2005)  # 1.135 municípios
+geobr::read_semiarid(year = 2017)  # 1.262 municípios
+geobr::read_semiarid(year = 2021)  # 1.477 municípios
+```
 
 ---
 

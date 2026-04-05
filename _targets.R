@@ -62,7 +62,11 @@ build_mun_tab <- function(mun_sf) {
 # --- Semi-árido --------------------------------------------------------------
 
 build_semiarido <- function(mun_tab) {
-  # Snapshots via geobr (2005, 2017, 2022)
+  # Usa snapshots geobr verificáveis (2005, 2017, 2021).
+  # Anos de mudança:
+  #   2005 → Portaria Intermin. 1/2005 (1.135 mun.)
+  #   2017 → Res. CONDEL 107 + 115/2017 (+54+73=127 mun., total 1.262)
+  #   2021 → Res. CONDEL 150/2021 (+215-50 mun., total 1.477)
   extrair_codigos <- function(ano_geobr) {
     geobr::read_semiarid(year = ano_geobr, showProgress = FALSE) |>
       sf::st_drop_geometry() |>
@@ -72,36 +76,23 @@ build_semiarido <- function(mun_tab) {
 
   codigos_2005 <- extrair_codigos(2005)
   codigos_2017 <- extrair_codigos(2017)
-  codigos_2022 <- extrair_codigos(2022)
-
-  # Incrementos manuais para resoluções sem snapshot geobr
-  muns_res128_2018 <- ibge7(c(
-    2101350L, 2101608L, 2103703L, 2104552L, 2105302L, 2106276L, 2108801L,
-    2108909L, 2201150L, 2201556L, 2205359L, 2206241L, 2206340L, 2206696L,
-    2209708L
-  ))
-  muns_res150_2019 <- ibge7(c(
-    2902658L, 2905701L, 2912202L, 2922250L, 2924306L, 2928109L, 2929503L,
-    2602803L, 2615805L
-  ))
+  codigos_2021 <- extrair_codigos(2021)
 
   muns_add_2017 <- setdiff(codigos_2017, codigos_2005)
-  muns_add_2022 <- setdiff(
-    setdiff(codigos_2022, codigos_2017),
-    c(muns_res128_2018, muns_res150_2019)
-  )
+  muns_add_2021 <- setdiff(codigos_2021, codigos_2017)
+  muns_rem_2021 <- setdiff(codigos_2017, codigos_2021)  # Res. 150 removeu 50
 
   semiarido_entrada <- dplyr::bind_rows(
-    tibble::tibble(cod_mun = codigos_2005,     ano_entrada_semiarido = 2005L),
-    tibble::tibble(cod_mun = muns_add_2017,    ano_entrada_semiarido = 2017L),
-    tibble::tibble(cod_mun = muns_res128_2018, ano_entrada_semiarido = 2018L),
-    tibble::tibble(cod_mun = muns_res150_2019, ano_entrada_semiarido = 2019L),
-    tibble::tibble(cod_mun = muns_add_2022,    ano_entrada_semiarido = 2022L)
+    tibble::tibble(cod_mun = codigos_2005,  ano_entrada_semiarido = 2005L),
+    tibble::tibble(cod_mun = muns_add_2017, ano_entrada_semiarido = 2017L),
+    tibble::tibble(cod_mun = muns_add_2021, ano_entrada_semiarido = 2021L)
   ) |>
     dplyr::filter(cod_mun %in% mun_tab$cod_mun) |>
     dplyr::group_by(cod_mun) |>
     dplyr::slice_min(ano_entrada_semiarido, n = 1, with_ties = FALSE) |>
     dplyr::ungroup()
+
+  saidas_2021_ne <- intersect(muns_rem_2021, mun_tab$cod_mun)
 
   mun_tab |>
     dplyr::select(cod_mun, sigla_uf, nome_mun) |>
@@ -109,9 +100,10 @@ build_semiarido <- function(mun_tab) {
     dplyr::left_join(semiarido_entrada, by = "cod_mun") |>
     dplyr::mutate(
       d_semiarido = dplyr::case_when(
-        is.na(ano_entrada_semiarido)    ~ 0L,
-        ano >= ano_entrada_semiarido    ~ 1L,
-        TRUE                            ~ 0L
+        is.na(ano_entrada_semiarido)                     ~ 0L,
+        cod_mun %in% saidas_2021_ne & ano >= 2021L       ~ 0L,
+        ano >= ano_entrada_semiarido                      ~ 1L,
+        TRUE                                              ~ 0L
       )
     )
 }
